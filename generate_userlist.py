@@ -33,7 +33,7 @@ class GenUL(loader.Module):
             return await m.edit("бля")
         else:
             c = 0
-            for msg in await m.client.iter_messages(m.chat.id, offset_id = reply.id, reverse=True, limit = 400):
+            async for msg in m.client.iter_messages(m.chat.id, offset_id = reply.id, reverse=True, limit = 400):
                 if max_users == c: break
                 c += 1
                 try:
