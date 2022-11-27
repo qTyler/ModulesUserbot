@@ -3,6 +3,7 @@
 # meta developer: @VacuumCleanr
 
 from .. import loader, utils
+from telethon.tl.types import Message
 import datetime
 from time import strftime
 import pprint
