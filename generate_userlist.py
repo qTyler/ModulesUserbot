@@ -5,7 +5,7 @@
 from .. import loader, utils
 import datetime
 from time import strftime
-
+import pprint
 
 @loader.tds
 class GenUL(loader.Module):
@@ -15,9 +15,9 @@ class GenUL(loader.Module):
     
     @loader.owner
     async def sglcmd(self, m):
-        "<reply> - нужно ответить на сообщение с которого будет начинаться парсинг пользователей
-        [max_users] - максимальное количество пользователей в списке, по умолчанию: 30
-        "
+        """<reply> - нужно ответить на сообщение с которого будет начинаться парсинг пользователей
+        [max_users] - максимальное количество пользователей в списке, по умолчанию: 30"""
+            
         max_users = 30 #default
         symbols_add = [
             '+',
@@ -50,8 +50,8 @@ class GenUL(loader.Module):
                             c += 1
                             userlist.append(user)
                 except TypeError: continue
-                except NameError: user = '* Аноним без должности'
+                except NameError: userlist.append('* Аноним без должности')
                 #userlist.append('{}. {}\n'.format(c, user))
                 
-        await message.edit(userlist)     
+        await message.edit(pprint.pprint(userlist))     
                     
