@@ -26,8 +26,10 @@ class GenUL(loader.Module):
             '➕',
             '👍'
         ]
+        await m.edit('xm: {}'.format(pprint.pprint(m)))
         if not m.chat:
-            return await m.edit("<b>Это не чат</b>")
+            return await m.edit('m: {}'.format(pprint.pprint(self)))
+            #return await m.edit("<b>Это не чат</b>")
 
         usrlist = []
         reply = await m.get_reply_message()
@@ -53,5 +55,4 @@ class GenUL(loader.Module):
                 except NameError: userlist.append('* Аноним без должности')
                 #userlist.append('{}. {}\n'.format(c, user))
                 
-        await message.edit(pprint.pprint(userlist))     
-                    
+        await message.edit(pprint.pprint(userlist))
