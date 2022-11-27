@@ -37,7 +37,7 @@ class GenUL(loader.Module):
                 if max_users == c: break
                 c += 1
                 try:
-                    if msg.text[0:1] in symbols_add:
+                    if msg.text in symbols_add:
                         user = utils.get_display_name(msg.sender)
                         if msg.sender == None:
                             user = msg.post_author
