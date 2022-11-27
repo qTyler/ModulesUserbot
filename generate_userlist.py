@@ -23,8 +23,8 @@ class GenUL(loader.Module):
                 max_users = int(args[0])
             except ValueError: pass
             
-         if chatid is None:
-            chatid = utils.get_chat_id(message)
+        if chatid is None:
+           chatid = utils.get_chat_id(message)
             
     @loader.owner
     async def sglcmd(self, m):
@@ -41,7 +41,7 @@ class GenUL(loader.Module):
         ]
         
         if chatid is None:
-            chatid = utils.get_chat_id(m)
+           chatid = utils.get_chat_id(m)
             
         await m.edit('xm: {}'.format(pprint.pprint(chatid)))
         if not m.chat:
