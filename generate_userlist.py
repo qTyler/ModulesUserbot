@@ -28,6 +28,7 @@ class GenUL(loader.Module):
             return await m.edit("<b>Это не чат</b>")
 
         usrlist = ''
+        reply = await m.get_reply_message()
         if not reply:
             return await m.edit("бля")
         else:
