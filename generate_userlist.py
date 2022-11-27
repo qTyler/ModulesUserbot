@@ -27,7 +27,7 @@ class GenUL(loader.Module):
         if not m.chat:
             return await m.edit("<b>Это не чат</b>")
 
-        usrlist = ''
+        usrlist = []
         reply = await m.get_reply_message()
         if not reply:
             return await m.edit("бля")
@@ -35,9 +35,8 @@ class GenUL(loader.Module):
             c = 0
             async for msg in m.client.iter_messages(m.chat.id, offset_id = reply.id, reverse=True, limit = 400):
                 if max_users == c: break
-                c += 1
                 try:
-                    if msg.text in symbols_add:
+                    if msg.text.lower() in symbols_add:
                         user = utils.get_display_name(msg.sender)
                         if msg.sender == None:
                             user = msg.post_author
@@ -45,8 +44,12 @@ class GenUL(loader.Module):
                         else:
                             uid = msg.sender.id
                         if not user: user = m.chat.title
+                        if not user in userlist:
+                            c += 1
+                            userlist.append(user)
                 except TypeError: continue
                 except NameError: user = '* Аноним без должности'
-                userlist += '{}. {}\n'.format(c, user)
+                #userlist.append('{}. {}\n'.format(c, user))
+                
         await message.edit(userlist)     
                     
