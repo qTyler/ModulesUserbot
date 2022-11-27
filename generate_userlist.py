@@ -13,11 +13,24 @@ class GenUL(loader.Module):
 
     strings = {'name': 'GenUserList'}
     
+    async def chatparsercommon(self, message: Message):
+        args = utils.get_args(message)
+        chatid = None
+        max_users = 30
+
+        if args:
+            try:
+                max_users = int(args[0])
+            except ValueError: pass
+            
+         if chatid is None:
+            chatid = utils.get_chat_id(message)
+            
     @loader.owner
     async def sglcmd(self, m):
         """<reply> - нужно ответить на сообщение с которого будет начинаться парсинг пользователей
         [max_users] - максимальное количество пользователей в списке, по умолчанию: 30"""
-            
+        chatid = None    
         max_users = 30 #default
         symbols_add = [
             '+',
@@ -26,7 +39,11 @@ class GenUL(loader.Module):
             '➕',
             '👍'
         ]
-        await m.edit('xm: {}'.format(pprint.pprint(m)))
+        
+        if chatid is None:
+            chatid = utils.get_chat_id(m)
+            
+        await m.edit('xm: {}'.format(pprint.pprint(chatid)))
         if not m.chat:
             return await m.edit('m: {}'.format(pprint.pprint(self)))
             #return await m.edit("<b>Это не чат</b>")
@@ -37,7 +54,7 @@ class GenUL(loader.Module):
             return await m.edit("бля")
         else:
             c = 0
-            async for msg in m.client.iter_messages(m.chat.id, offset_id = reply.id, reverse=True, limit = 400):
+            async for msg in m.client.iter_messages(chatid, offset_id = reply.id, reverse=True, limit = 400):
                 if max_users == c: break
                 try:
                     if msg.text.lower() in symbols_add:
