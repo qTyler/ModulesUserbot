@@ -4,50 +4,54 @@
 
 from .. import loader, utils
 from telethon.tl.types import Message
+from telethon.utils import get_display_name
 import datetime
 from time import strftime
 import pprint
 
 @loader.tds
 class GenUL(loader.Module):
-    """Генерация списка пользователей"""
+    """Генерация списка участников"""
 
     strings = {'name': 'GenUserList'}
     
-    async def chatparsercommon(self, message: Message):
-        args = utils.get_args(message)
-        chatid = None
-        max_users = 30
-
-        if args:
-            try:
-                max_users = int(args[0])
-            except ValueError: pass
-            
-        if chatid is None:
-           chatid = utils.get_chat_id(message)
-            
-    @loader.owner
-    async def sglcmd(self, m):
+    async def listview(self, list):
+        i = 0
+        cusers = len(list)
+        listview = f'🧑‍💻 [{cusers}] <b>Список участников</b>!\n⊶⊷⊶⊷⊶⊷⊶⊷⊶⊷⊶⊷⊶⊷⊶⊷⊶⊷⊶\n'
+        for user in list:
+           i += 1
+           if cusers == i: # footer
+              listview += f'<b>📌{i}</b>. {user}\n'
+           else: # middle 
+              listview += f'<b>{i}</b>. {user}\n'
+        return listview   
+    
+    @loader.group_admin
+    async def ulcmd(self, m: Message):
         """<reply> - нужно ответить на сообщение с которого будет начинаться парсинг пользователей
-        [max_users] - максимальное количество пользователей в списке, по умолчанию: 30"""
-        chatid = None    
+             [max_users] - максимальное количество пользователей в списке, по умолчанию: 30"""
+            
         max_users = 30 #default
         symbols_add = [
             '+',
             'plus',
             'плюс',
             '➕',
-            '👍'
+            '👍',
+            '✔️',
+            '✅',
+            '☑️'
         ]
-        
-        if chatid is None:
-           chatid = utils.get_chat_id(m)
-            
-        await m.edit('xm: {}'.format(pprint.pprint(chatid)))
+
+        args = utils.get_args(m)
+        chatid = utils.get_chat_id(m)
+        if args:
+            try: max_users = int(args[0])
+            except ValueError: pass
+
         if not m.chat:
-            return await m.edit('m: {}'.format(pprint.pprint(self)))
-            #return await m.edit("<b>Это не чат</b>")
+            return await m.edit("<b>Это не чат</b>")
 
         usrlist = []
         reply = await m.get_reply_message()
@@ -59,18 +63,19 @@ class GenUL(loader.Module):
                 if max_users == c: break
                 try:
                     if msg.text.lower() in symbols_add:
-                        user = utils.get_display_name(msg.sender)
+                        user = get_display_name(msg.sender)
                         if msg.sender == None:
                             user = msg.post_author
-                            #uid = 0
+                            uid = 0
                         else:
                             uid = msg.sender.id
                         if not user: user = m.chat.title
-                        if not user in userlist:
-                            c += 1
-                            userlist.append(user)
+                        if not user in usrlist:
+                            c += 1 
+                            usrlist.append(user)
                 except TypeError: continue
-                except NameError: userlist.append('* Аноним без должности')
-                #userlist.append('{}. {}\n'.format(c, user))
+                except NameError:
+                    c += 1
+                    usrlist.append('* Аноним без должности')
                 
-        await message.edit(pprint.pprint(userlist))
+        await utils.answer(m, await self.listview(usrlist))
