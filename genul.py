@@ -28,18 +28,21 @@ class RaffAss(loader.Module):
         self.config = loader.ModuleConfig(
             loader.ConfigValue( # self.config["max_users"]
                 "max_users",
+                100,
                 doc=lambda: "Максимальное количество участников. Значение по умолчанию",
                 validator=loader.validators.Integer()
             ),
             loader.ConfigValue( # self.config["ignored_users"]
                 "ignored_users",
+                [ ],
                 doc=lambda: "Список пользователей которым запрещено учавствовать в отборе на рулетку",
-                validator=loader.validators.Choice()
+                validator=loader.validators.Series(validator=loader.validators.String())
             ),                 
             loader.ConfigValue( # self.config["trigger_symbols"]
                 "trigger_symbols",
+                ['+', 'plus', 'плюс', '➕', '👍', '✔️', '✅', '☑️'],
                 doc=lambda: "Список символов и слов для участие в отборе на рулетку",
-                validator=loader.validators.Choice() # ['+', 'plus', 'плюс', '➕', '👍', '✔️', '✅', '☑️']
+                validator=loader.validators.Series(validator=loader.validators.String()) # 
             ),
     )
     async def listview(self,):
