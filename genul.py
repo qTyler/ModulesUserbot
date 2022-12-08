@@ -5,64 +5,81 @@
 from .. import loader, utils
 from telethon.tl.types import Message
 from telethon.utils import get_display_name
-import datetime
+import datetime, requests
 from time import strftime
-import pprint
 
 @loader.tds
-class GenUL(loader.Module):
-    """Генерация списка участников"""
+class RaffAss(loader.Module):
+    """Модуль-помощник в проведении розыгрышей и рулеток"""
 
-    strings = {'name': 'GenUserList'}
+    strings = {
+        "name": "Raffle Assistant",
+        "error_no_pm": "<b>[UserBot]</b> Это не чат",
+        "errr_no_reply": "<b>[UserBot]</b> Не тупи, никакой это не ответ :)",
+        "no_rank": "Аноним без должности",
+        "_list_begin":" ╭︎ 🗂 <b>Список участников:</b>\n",
+        "_list_body" : "├︎ <b>{}</b>. {}\n", 
+        "_list_footer":"╰︎ <b>{}</b>. {}\n",
+    }
     
-    async def listview(self, list):
+    usrlist = [ ]
+   
+    def __init__(self):
+        self.config = loader.ModuleConfig(
+            loader.ConfigValue( # self.config["max_users"]
+                "max_users",
+                doc=lambda: "Максимальное количество участников. Значение по умолчанию",
+                validator=loader.validators.Integer()
+            ),
+            loader.ConfigValue( # self.config["ignored_users"]
+                "ignored_users",
+                doc=lambda: "Список пользователей которым запрещено учавствовать в отборе на рулетку",
+                validator=loader.validators.Choice()
+            ),                 
+            loader.ConfigValue( # self.config["trigger_symbols"]
+                "trigger_symbols",
+                doc=lambda: "Список символов и слов для участие в отборе на рулетку",
+                validator=loader.validators.Choice() # ['+', 'plus', 'плюс', '➕', '👍', '✔️', '✅', '☑️']
+            ),
+    )
+    async def listview(self,):
         i = 0
+        list = self.usrlist
         cusers = len(list)
-        listview = f'🧑‍💻 [{cusers}] <b>Список участников</b>!\n⊶⊷⊶⊷⊶⊷⊶⊷⊶⊷⊶⊷⊶⊷⊶⊷⊶⊷⊶\n'
+        listview = self.strings("_list_begin")
         for user in list:
            i += 1
-           if cusers == i: # footer
-              listview += f'<b>📌{i}</b>. {user}\n'
-           else: # middle 
-              listview += f'<b>{i}</b>. {user}\n'
+           if cusers == i: listview += self.strings("_list_footer").format(i, user)
+           else: listview += self.strings("_list_body").format(i, user)
         return listview   
-    
-    @loader.group_admin
-    async def ulcmd(self, m: Message):
-        """<reply> - нужно ответить на сообщение с которого будет начинаться парсинг пользователей
-             [max_users] - максимальное количество пользователей в списке, по умолчанию: 30"""
-            
-        max_users = 30 #default
-        symbols_add = [
-            '+',
-            'plus',
-            'плюс',
-            '➕',
-            '👍',
-            '✔️',
-            '✅',
-            '☑️'
-        ]
 
+    @loader.unrestricted
+    async def ulcmd(self, m: Message):
+        """ <*reply> [max_users:int] - Gенерация списка участников для рулетки
+           Пример генерации списка на 25 чел: .ul 25 
+           
+           ‼️ Для участия в отборе нужно отправить один из следующих триггеров: 
+             «+», «plus», «плюс», «➕», «👍», «✔️», «✅», «☑️»
+        """
+        
         args = utils.get_args(m)
         chatid = utils.get_chat_id(m)
+        max_users = self.config["max_users"]
         if args:
             try: max_users = int(args[0])
             except ValueError: pass
-
+          
         if not m.chat:
-            return await m.edit("<b>Это не чат</b>")
+            return await m.edit(self.string("error_no_pm"))
 
-        usrlist = []
         reply = await m.get_reply_message()
-        if not reply:
-            return await m.edit("бля")
+        if not reply: return await m.edit(self.string("errr_no_reply"))
         else:
             c = 0
             async for msg in m.client.iter_messages(chatid, offset_id = reply.id, reverse=True, limit = 400):
                 if max_users == c: break
                 try:
-                    if msg.text.lower() in symbols_add:
+                    if str(msg.text).lower() in self.config["trigger_symbols"]: #self.symbols_add:
                         user = get_display_name(msg.sender)
                         if msg.sender == None:
                             user = msg.post_author
@@ -70,12 +87,14 @@ class GenUL(loader.Module):
                         else:
                             uid = msg.sender.id
                         if not user: user = m.chat.title
-                        if not user in usrlist:
+                        if not user in self.usrlist:
                             c += 1 
-                            usrlist.append(user)
+                            self.usrlist.append(user)
+                            
+                except AttributeError: continue
                 except TypeError: continue
                 except NameError:
                     c += 1
-                    usrlist.append('* Аноним без должности')
+                    self.usrlist.append(self.strings("no_rank"))
                 
-        await utils.answer(m, await self.listview(usrlist))
+        await utils.answer(m, await self.listview())
