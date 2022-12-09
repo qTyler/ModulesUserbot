@@ -17,7 +17,6 @@ class RaffAss(loader.Module):
         "error_no_pm": "<b>[UserBot]</b> Это не чат",
         "errr_no_reply": "<b>[UserBot]</b> Не тупи, никакой это не ответ :)",
         "no_rank": "Аноним без должности",
-        "const_theme": " ╭︎ 🗂 <b>Список участников:</b>\n├︎ <b>{}</b>. {}\n╰︎ <b>{}</b>. {}\n",
         "_list_begin":" ╭︎ 🗂 <b>Список участников:</b>\n",
         "_list_body" : "├︎ <b>{}</b>. {}\n", 
         "_list_footer":"╰︎ <b>{}</b>. {}\n",
@@ -46,7 +45,7 @@ class RaffAss(loader.Module):
             
             loader.ConfigValue( # self.config["theme_template"]
                 "theme_template",
-                self.strings("const_theme"),
+                " ╭︎ 🗂 <b>Список участников:</b>\n├︎ <b>{}</b>. {}\n╰︎ <b>{}</b>. {}\n",
                 doc=lambda: "Шаблон/оформление отображаемого списка",
                 validator=loader.validators.String() # 
             ),           
@@ -54,8 +53,10 @@ class RaffAss(loader.Module):
         
     async def load_theme(self,):
         lines = self.config["theme_template"].split('\n')
-        if len(lines) == 3: return lines
-        else: return self.strings("const_theme").split('\n')
+        if len(lines) == 3: 
+            return lines
+        else: 
+            return " ╭︎ 🗂 <b>Список участников:</b>\n├︎ <b>{}</b>. {}\n╰︎ <b>{}</b>. {}\n".split('\n')
         
     async def listview(self, list):
         i = 0
