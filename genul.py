@@ -33,7 +33,7 @@ class RaffAss(loader.Module):
             loader.ConfigValue( # self.config["ignored_users"]
                 "ignored_users",
                 [ ],
-                doc=lambda: "Список пользователей которым запрещено учавствовать в отборе на рулетку. Если необходимо запретить анонимным участвие, добавьте значение 0",
+                doc=lambda: "Список пользователей которым запрещено учавствовать в отборе на рулетку",
                 validator=loader.validators.Series(validator=loader.validators.String())
             ),                 
             loader.ConfigValue( # self.config["trigger_symbols"]
@@ -68,6 +68,13 @@ class RaffAss(loader.Module):
            else: listview += self.strings("_list_body").format(i, user)
         return listview   
 
+    @loader.unrestricted
+    async def uliucmd(self, m: Message):
+        """ - Список идентификаторов пользователей которым запрещено участвие в отборе
+        0 - запрет анонимным пользователям
+        """
+        pass
+    
     @loader.unrestricted
     async def ulcmd(self, m: Message):
         """ <*reply> [max_users:int] - Gенерация списка участников для рулетки
