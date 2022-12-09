@@ -13,7 +13,7 @@ class RaffAss(loader.Module):
     """Модуль-помощник в проведении розыгрышей и рулеток"""
 
     strings = {
-        "name": "Raffle Assistant",
+        "name": "RaffleAssistant",
         "error_no_pm": "<b>[UserBot]</b> Это не чат",
         "errr_no_reply": "<b>[UserBot]</b> Не тупи, никакой это не ответ :)",
         "no_rank": "Аноним без должности",
