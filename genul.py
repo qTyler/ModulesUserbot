@@ -17,13 +17,12 @@ class RaffAss(loader.Module):
         "error_no_pm": "<b>[UserBot]</b> Это не чат",
         "errr_no_reply": "<b>[UserBot]</b> Не тупи, никакой это не ответ :)",
         "no_rank": "Аноним без должности",
+        "const_theme": " ╭︎ 🗂 <b>Список участников:</b>\n├︎ <b>{}</b>. {}\n╰︎ <b>{}</b>. {}\n",
         "_list_begin":" ╭︎ 🗂 <b>Список участников:</b>\n",
         "_list_body" : "├︎ <b>{}</b>. {}\n", 
         "_list_footer":"╰︎ <b>{}</b>. {}\n",
     }
     
-    usrlist = [ ]
-   
     def __init__(self):
         self.config = loader.ModuleConfig(
             loader.ConfigValue( # self.config["max_users"]
@@ -35,19 +34,31 @@ class RaffAss(loader.Module):
             loader.ConfigValue( # self.config["ignored_users"]
                 "ignored_users",
                 [ ],
-                doc=lambda: "Список пользователей которым запрещено учавствовать в отборе на рулетку",
+                doc=lambda: "Список пользователей которым запрещено учавствовать в отборе на рулетку. Если необходимо запретить анонимным участвие, добавьте значение 0",
                 validator=loader.validators.Series(validator=loader.validators.String())
             ),                 
             loader.ConfigValue( # self.config["trigger_symbols"]
                 "trigger_symbols",
                 ['+', 'plus', 'плюс', '➕', '👍', '✔️', '✅', '☑️'],
-                doc=lambda: "Список символов и слов для участие в отборе на рулетку",
+                doc=lambda: "Список триггеров для участия в отборе на рулетку",
                 validator=loader.validators.Series(validator=loader.validators.String()) # 
             ),
+            
+            loader.ConfigValue( # self.config["theme_template"]
+                "theme_template",
+                self.strings("const_theme"),
+                doc=lambda: "Шаблон/оформление отображаемого списка",
+                validator=loader.validators.String() # 
+            ),           
     )
-    async def listview(self,):
+        
+    async def load_theme(self,):
+        lines = self.config["theme_template"].split('\n')
+        if len(lines) == 3: return lines
+        else: return self.strings("const_theme").split('\n')
+        
+    async def listview(self, list):
         i = 0
-        list = self.usrlist
         cusers = len(list)
         listview = self.strings("_list_begin")
         for user in list:
@@ -60,14 +71,12 @@ class RaffAss(loader.Module):
     async def ulcmd(self, m: Message):
         """ <*reply> [max_users:int] - Gенерация списка участников для рулетки
            Пример генерации списка на 25 чел: .ul 25 
-           
-           ‼️ Для участия в отборе нужно отправить один из следующих триггеров: 
-             «+», «plus», «плюс», «➕», «👍», «✔️», «✅», «☑️»
         """
         
         args = utils.get_args(m)
         chatid = utils.get_chat_id(m)
         max_users = self.config["max_users"]
+        
         if args:
             try: max_users = int(args[0])
             except ValueError: pass
@@ -79,8 +88,10 @@ class RaffAss(loader.Module):
         if not reply: return await m.edit(self.string("errr_no_reply"))
         else:
             c = 0
+            usrlist = [ ]
             async for msg in m.client.iter_messages(chatid, offset_id = reply.id, reverse=True, limit = 400):
                 if max_users == c: break
+                useradd = ''
                 try:
                     if str(msg.text).lower() in self.config["trigger_symbols"]: #self.symbols_add:
                         user = get_display_name(msg.sender)
@@ -90,14 +101,19 @@ class RaffAss(loader.Module):
                         else:
                             uid = msg.sender.id
                         if not user: user = m.chat.title
-                        if not user in self.usrlist:
-                            c += 1 
-                            self.usrlist.append(user)
+                        if not user in usrlist:
+                            c += 1
+                            useradd = user
+                            #self.usrlist.append(user)
                             
                 except AttributeError: continue
                 except TypeError: continue
                 except NameError:
                     c += 1
-                    self.usrlist.append(self.strings("no_rank"))
+                    useradd = self.strings("no_rank")
+                    
+                if useradd:
+                    if uid in self.config["ignored_users"]: continue
+                    else: usrlist.append(useradd)
                 
-        await utils.answer(m, await self.listview())
+        await utils.answer(m, await self.listview(usrlist))
