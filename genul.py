@@ -69,15 +69,32 @@ class RaffAss(loader.Module):
         return listview   
 
     @loader.unrestricted
-    async def uliucmd(self, m: Message):
-        """ - Список идентификаторов пользователей которым запрещено участвие в отборе
-        0 - запрет анонимным пользователям
+    async def ulsblcmd(self, m: Message):
+        """
+        Показать список идентификаторов пользователей в черном списке. Для запрета анонимных пользователей, добавьте значение 0
+        """
+        pass
+ 
+    @loader.unrestricted
+    async def ulablcmd(self, m: Message):
+        """ <ответ на сообщение/userID> 
+        Добавить пользователя в черный список отбора на рулетку
+        """
+        pass
+    
+    @loader.unrestricted
+    async def uldblcmd(self, m: Message):
+        """ <ответ на сообщение/userID> 
+        Удалить пользователя из черного списка 
         """
         pass
     
     @loader.unrestricted
     async def ulcmd(self, m: Message):
-        """ <*reply> [max_users:int] - Gенерация списка участников для рулетки
+        """ <ответ на сообщение> <макс. участников> 
+        Генерация списка участников для рулетки
+        <ответ на сообщение> - с этого сообщения начинается парсинг (читает 400 сообщений) триггеров
+        <макс. участников> - максимальное количество участников, по умолчанию: 100
            Пример генерации списка на 25 чел: .ul 25 
         """
         
@@ -90,10 +107,10 @@ class RaffAss(loader.Module):
             except ValueError: pass
           
         if not m.chat:
-            return await m.edit(self.string("error_no_pm"))
+            return await m.edit(self.strings("error_no_pm"))
 
         reply = await m.get_reply_message()
-        if not reply: return await m.edit(self.string("errr_no_reply"))
+        if not reply: return await m.edit(self.strings("errr_no_reply"))
         else:
             c = 0
             usrlist = [ ]
