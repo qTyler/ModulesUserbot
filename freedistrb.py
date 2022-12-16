@@ -19,9 +19,33 @@ class FreeDistribution(loader.Module):
     def __init__(self):
       self.config = loader.ModuleConfig(
             loader.ConfigValue(
+                "BannerUrl",
+                "https://raw.githubusercontent.com/qTyler/ModulesUserbot/main/freedistrb_logo.png",
+                doc=lambda: "Баннер старта раздачи",
+                validator=loader.validators.Url()
+            ),
+            loader.ConfigValue(
+                "StartDesc",
+                "",
+                doc=lambda: "Описание программы раздачи. Значение по умолчанию",
+                validator=loader.validators.String()
+            ),          
+            loader.ConfigValue(
                 "DisTime",
                 3,
                 doc=lambda: "Время проведение раздачи в часах. Значение по умолчанию",
+                validator=loader.validators.Integer()
+            ),
+            loader.ConfigValue(
+                "BlockUserDays",
+                14,
+                doc=lambda: "Запрет на участие в раздачах в днях. Значение по умолчанию",
+                validator=loader.validators.Integer()
+            ),         
+            loader.ConfigValue(
+                "ReviewsTTL",
+                48,
+                doc=lambda: "Время ожидания отзыва в часах. Значение по умолчанию",
                 validator=loader.validators.Integer()
             ),
             loader.ConfigValue(
@@ -33,7 +57,7 @@ class FreeDistribution(loader.Module):
             loader.ConfigValue(
                 "LinkLifetime",
                 3,
-                doc=lambda: "Время жизни ссылки в секундах. Значение по умолчанию",
+                doc=lambda: "Время жизни ссылки/кнопки в секундах. Значение по умолчанию",
                 validator=loader.validators.Integer()
             ),         
             loader.ConfigValue( 
@@ -45,41 +69,13 @@ class FreeDistribution(loader.Module):
         )
     
     def _get_mark(self):
-        url = self.config['Store'][random.randint(0, len(self.config['Store']))]
+        #url = self.config['Store'][random.randint(0, len(self.config['Store']))]
         return (
             {
                 "text": self.config["btnName"],
-                "url": url,
+                "data": b"sendbonus",
             }
         )
-    
-    @loader.unrestricted
-    async def infocmd(self, message: Message):
-        """Send userbot info"""
-
-        if self.config["custom_button"]:
-            await self.inline.form(
-                message=message,
-                text=self._render_info(True),
-                reply_markup=self._get_mark(),
-                **(
-                    {"photo": self.config["banner_url"]}
-                    if self.config["banner_url"]
-                    else {}
-                ),
-            )
-        else:
-            try:
-                await self._client.send_file(
-                    message.peer_id,
-                    self.config["banner_url"],
-                    caption=self._render_info(False),
-                )
-            except Exception:
-                await utils.answer(message, self._render_info(False))
-            else:
-                if message.out:
-                    await message.delete()
     
     @loader.owner
     async def fdstrbcmd(self, m: Message):
@@ -99,4 +95,19 @@ class FreeDistribution(loader.Module):
         if len(self.config['Store']) > 0:
           return await m.edit(self.strings("error_store_empty"))
         
+        await self.inline.form(
+            message = message,
+            text = self.config["StartDesc"].format( #self.config["LinkFrequency"],
+                self.config["DisTime"],
+                self.config["LinkLifetime"],
+                self.config["ReviewsTTL"],
+                self.config["BlockUserDays"]
+            ),
+            reply_markup = self._get_mark(),
+            **(
+                {"photo": self.config["BannerUrl"]}
+                if self.config["BannerUrl"]
+                else {}
+            ),
+        )
         
